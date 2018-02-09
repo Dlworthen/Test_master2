@@ -1764,7 +1764,7 @@ module cice_cap_mod
 
     type(ESMF_Field)         :: field
     real(ESMF_KIND_R8), dimension(:,:), pointer  :: f2d
-    integer                  :: rc
+    integer                  :: i,j,rc
 
     if(.not. write_diagnostics) return ! remove this line to debug field connection
 
