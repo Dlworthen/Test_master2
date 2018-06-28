@@ -67,8 +67,8 @@ module cice_cap_mod
   integer :: dbrc     ! temporary debug rc value
 
   type(ESMF_Grid), save :: ice_grid_i
-  logical :: write_diagnostics = .true.
-  logical :: profile_memory = .true.
+  logical :: write_diagnostics = .false.
+  logical :: profile_memory = .false.
 
   contains
   !-----------------------------------------------------------------------
@@ -151,6 +151,7 @@ module cice_cap_mod
     type(ESMF_VM)         :: vm
     integer               :: lpet
 
+    character(240)              :: msgString
     rc = ESMF_SUCCESS
 
     ! Switch to IPDv01 by filtering all other phaseMap entries
@@ -172,6 +173,8 @@ module cice_cap_mod
       line=__LINE__, &
       file=__FILE__)) &
       return  ! bail out
+     write(msgString,'(a12,i8)')'CICE lpet = ',lpet
+     call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO)
 
     call ESMF_AttributeGet(gcomp, name="DumpFields", value=value, defaultValue="true", &
       convention="NUOPC", purpose="Instance", rc=rc)
@@ -189,9 +192,15 @@ module cice_cap_mod
       return  ! bail out
     profile_memory=(trim(value)/="false")
 
-    if(lpet == 0) &
-      print *, 'CICE DumpFields = ', write_diagnostics, 'ProfileMemory = ', profile_memory
+    !if(lpet == 0) &
+    !  print *, 'CICE DumpFields = ', write_diagnostics, 'ProfileMemory = ', profile_memory
     
+         if(write_diagnostics)call ESMF_LogWrite("CICE DumpFields is  true", ESMF_LOGMSG_INFO)
+    if(.not.write_diagnostics)call ESMF_LogWrite("CICE DumpFields is false", ESMF_LOGMSG_INFO)
+
+         if(profile_memory)call ESMF_LogWrite("ProfileMemory is  true", ESMF_LOGMSG_INFO)
+    if(.not.profile_memory)call ESMF_LogWrite("ProfileMemory is false", ESMF_LOGMSG_INFO)
+
   end subroutine
   
   !-----------------------------------------------------------------------------
@@ -313,6 +322,9 @@ module cice_cap_mod
        write(tmpstr,'(a,3i8)') subname//' iglo = ',n,deBlockList(1,1,n),deBlockList(1,2,n)
        call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO, rc=dbrc)
        write(tmpstr,'(a,3i8)') subname//' jglo = ',n,deBlockList(2,1,n),deBlockList(2,2,n)
+       call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO, rc=dbrc)
+
+       write(tmpstr,'(a,3i8)') subname//' petMap = ',n,petMap(n),nblocks_tot
        call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO, rc=dbrc)
     enddo
 
@@ -814,6 +826,7 @@ module cice_cap_mod
     enddo
 #endif
   endif  ! write_diagnostics
+         ! import fields
 
     call State_getFldPtr(importState,'inst_temp_height_lowest',dataPtr_Tbot,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,line=__LINE__,file=__FILE__)) return
@@ -1019,11 +1032,11 @@ module cice_cap_mod
     call State_getFldPtr(exportState,'mean_evap_rate_atm_into_ice',dataPtr_evap,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,line=__LINE__,file=__FILE__)) return
 
-    write(info, *) subname//' ifrac size :', &
-      lbound(dataPtr_ifrac,1), ubound(dataPtr_ifrac,1), &
-      lbound(dataPtr_ifrac,2), ubound(dataPtr_ifrac,2), &
-      lbound(dataPtr_ifrac,3), ubound(dataPtr_ifrac,3)
-    call ESMF_LogWrite(info, ESMF_LOGMSG_INFO, rc=dbrc)
+    !write(info, *) subname//' ifrac size :', &
+    !  lbound(dataPtr_ifrac,1), ubound(dataPtr_ifrac,1), &
+    !  lbound(dataPtr_ifrac,2), ubound(dataPtr_ifrac,2), &
+    !  lbound(dataPtr_ifrac,3), ubound(dataPtr_ifrac,3)
+    !call ESMF_LogWrite(info, ESMF_LOGMSG_INFO, rc=dbrc)
 
     dataPtr_ifrac = 0._ESMF_KIND_R8
     dataPtr_itemp = 0._ESMF_KIND_R8
@@ -1084,14 +1097,14 @@ module cice_cap_mod
        enddo
     enddo
 
-    write(tmpstr,*) subname//' mask = ',minval(dataPtr_mask),maxval(dataPtr_mask)
-    call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO, rc=dbrc)
+    !write(tmpstr,*) subname//' mask = ',minval(dataPtr_mask),maxval(dataPtr_mask)
+    !call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO, rc=dbrc)
 
     !-------------------------------------------------
 
+  if(write_diagnostics) then
     call state_diagnose(exportState, 'cice_export', rc)
 
-  if(write_diagnostics) then
     export_slice = export_slice + 1
 
 #if (1 == 0)
@@ -1156,13 +1169,14 @@ module cice_cap_mod
     enddo
 #endif
   endif  ! write_diagnostics
-
+         ! export fields
     write(info,*) subname,' --- run phase 4 called --- ',rc
     call ESMF_LogWrite(info, ESMF_LOGMSG_INFO, rc=dbrc)
 
 ! Dump out all the cice internal fields to cross-examine with those connected with mediator
 ! This will help to determine roughly which fields can be hooked into cice
 
+   ! if write_diagnostics = false, dumpCICEInternal just returns
    call dumpCICEInternal(ice_grid_i, import_slice, "inst_zonal_wind_height10m", "will provide", strax)
    call dumpCICEInternal(ice_grid_i, import_slice, "inst_merid_wind_height10m", "will provide", stray)
    call dumpCICEInternal(ice_grid_i, import_slice, "inst_pres_height_surface" , "will provide", zlvl)
