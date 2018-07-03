@@ -154,6 +154,16 @@ module cice_cap_mod
     character(240)              :: msgString
     rc = ESMF_SUCCESS
 
+    ! like P0 in module_Mediator
+    call ESMF_AttributeGet(gcomp, &
+                           name="Verbosity", &
+                           value=value, &
+                           defaultValue="max", &
+                           convention="NUOPC", purpose="Instance", rc=rc)
+
+    write(msgString,'(A,l6)')'CICE Verbosity = '//trim(value)
+    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
+
     ! Switch to IPDv01 by filtering all other phaseMap entries
     call NUOPC_CompFilterPhaseMap(gcomp, ESMF_METHOD_INITIALIZE, &
       acceptStringList=(/"IPDv01p"/), rc=rc)
@@ -184,6 +194,9 @@ module cice_cap_mod
       return  ! bail out
     write_diagnostics=(trim(value)=="true")
 
+    write(msgString,'(A,l6)')'CICE Dumpfields = ',write_diagnostics
+    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
+
     call ESMF_AttributeGet(gcomp, name="ProfileMemory", value=value, defaultValue="true", &
       convention="NUOPC", purpose="Instance", rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
@@ -195,11 +208,8 @@ module cice_cap_mod
     !if(lpet == 0) &
     !  print *, 'CICE DumpFields = ', write_diagnostics, 'ProfileMemory = ', profile_memory
     
-         if(write_diagnostics)call ESMF_LogWrite("CICE DumpFields is  true", ESMF_LOGMSG_INFO)
-    if(.not.write_diagnostics)call ESMF_LogWrite("CICE DumpFields is false", ESMF_LOGMSG_INFO)
-
-         if(profile_memory)call ESMF_LogWrite("ProfileMemory is  true", ESMF_LOGMSG_INFO)
-    if(.not.profile_memory)call ESMF_LogWrite("ProfileMemory is false", ESMF_LOGMSG_INFO)
+    write(msgString,'(A,l6)')'CICE Profile_memory = ',profile_memory
+    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
 
   end subroutine
   
