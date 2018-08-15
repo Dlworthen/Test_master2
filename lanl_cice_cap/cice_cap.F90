@@ -155,14 +155,13 @@ module cice_cap_mod
     rc = ESMF_SUCCESS
 
     ! like P0 in module_Mediator
-    call ESMF_AttributeGet(gcomp, &
-                           name="Verbosity", &
-                           value=value, &
-                           defaultValue="max", &
-                           convention="NUOPC", purpose="Instance", rc=rc)
-
-    write(msgString,'(A,l6)')'CICE Verbosity = '//trim(value)
-    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
+    !call ESMF_AttributeGet(gcomp, &
+    !                       name="Verbosity", &
+    !                       value=value, &
+    !                       defaultValue="max", &
+    !                       convention="NUOPC", purpose="Instance", rc=rc)
+    !write(msgString,'(A,l6)')'CICE Verbosity = '//trim(value)
+    !call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
 
     ! Switch to IPDv01 by filtering all other phaseMap entries
     call NUOPC_CompFilterPhaseMap(gcomp, ESMF_METHOD_INITIALIZE, &
