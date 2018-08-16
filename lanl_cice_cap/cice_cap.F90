@@ -69,6 +69,7 @@ module cice_cap_mod
   type(ESMF_Grid), save :: ice_grid_i
   logical :: write_diagnostics = .false.
   logical :: profile_memory = .false.
+  logical :: grid_attach_area = .false.
 
   contains
   !-----------------------------------------------------------------------
@@ -151,17 +152,8 @@ module cice_cap_mod
     type(ESMF_VM)         :: vm
     integer               :: lpet
 
-    character(240)              :: msgString
+    character(240)        :: msgString
     rc = ESMF_SUCCESS
-
-    ! like P0 in module_Mediator
-    !call ESMF_AttributeGet(gcomp, &
-    !                       name="Verbosity", &
-    !                       value=value, &
-    !                       defaultValue="max", &
-    !                       convention="NUOPC", purpose="Instance", rc=rc)
-    !write(msgString,'(A,l6)')'CICE Verbosity = '//trim(value)
-    !call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
 
     ! Switch to IPDv01 by filtering all other phaseMap entries
     call NUOPC_CompFilterPhaseMap(gcomp, ESMF_METHOD_INITIALIZE, &
@@ -192,8 +184,7 @@ module cice_cap_mod
       file=__FILE__)) &
       return  ! bail out
     write_diagnostics=(trim(value)=="true")
-
-    write(msgString,'(A,l6)')'CICE Dumpfields = ',write_diagnostics
+    write(msgString,'(A,l6)')'CICE_CAP: Dumpfields = ',write_diagnostics
     call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
 
     call ESMF_AttributeGet(gcomp, name="ProfileMemory", value=value, defaultValue="true", &
@@ -203,12 +194,21 @@ module cice_cap_mod
       file=__FILE__)) &
       return  ! bail out
     profile_memory=(trim(value)/="false")
+    write(msgString,'(A,l6)')'CICE_CAP: Profile_memory = ',profile_memory
+    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
+
+    call ESMF_AttributeGet(gcomp, name="GridAttachArea", value=value, defaultValue="false", &
+      convention="NUOPC", purpose="Instance", rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+      line=__LINE__, &
+      file=__FILE__)) &
+      return  ! bail out
+    grid_attach_area=(trim(value)=="true")
+    write(msgString,'(A,l6)')'CICE_CAP: GridAttachArea = ',grid_attach_area
+    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
 
     !if(lpet == 0) &
     !  print *, 'CICE DumpFields = ', write_diagnostics, 'ProfileMemory = ', profile_memory
-    
-    write(msgString,'(A,l6)')'CICE Profile_memory = ',profile_memory
-    call ESMF_LogWrite(trim(msgString), ESMF_LOGMSG_INFO, rc=rc)
 
   end subroutine
   
@@ -411,10 +411,16 @@ module cice_cap_mod
     call ESMF_GridAddItem(gridIn, itemFlag=ESMF_GRIDITEM_MASK, itemTypeKind=ESMF_TYPEKIND_I4, &
        staggerLoc=ESMF_STAGGERLOC_CENTER, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-!commented out to remove Area from Grid
-!   call ESMF_GridAddItem(gridIn, itemFlag=ESMF_GRIDITEM_AREA, itemTypeKind=ESMF_TYPEKIND_R8, &
-!      staggerLoc=ESMF_STAGGERLOC_CENTER, rc=rc)
-!   if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+
+    ! Attach area to the Grid optionally. By default the cell areas are computed.
+    if(grid_attach_area) then
+      call ESMF_GridAddItem(gridIn, itemFlag=ESMF_GRIDITEM_AREA, itemTypeKind=ESMF_TYPEKIND_R8, &
+         staggerLoc=ESMF_STAGGERLOC_CENTER, rc=rc)
+      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, &
+        line=__LINE__, &
+        file=__FILE__)) &
+        return  ! bail out
+    endif
 
     do iblk = 1,nblocks
        DE = iblk-1
@@ -447,11 +453,22 @@ module cice_cap_mod
            staggerloc=ESMF_STAGGERLOC_CENTER, &
            farrayPtr=gridmask, rc=rc)
        if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-!commented out to remove Area from Grid
-!      call ESMF_GridGetItem(gridIn, itemflag=ESMF_GRIDITEM_AREA, localDE=DE, &
-!          staggerloc=ESMF_STAGGERLOC_CENTER, &
-!          farrayPtr=gridarea, rc=rc)
-!      if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+
+      if(grid_attach_area) then
+       call ESMF_GridGetItem(gridIn, itemflag=ESMF_GRIDITEM_AREA, localDE=DE, &
+            staggerloc=ESMF_STAGGERLOC_CENTER, &
+            farrayPtr=gridarea, rc=rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+       do j1 = lbnd(2),ubnd(2)
+       do i1 = lbnd(1),ubnd(1)
+          i = i1 + ilo - lbnd(1)
+          j = j1 + jlo - lbnd(2)
+          gridarea(i1,j1) = tarea(i,j,iblk)
+       enddo
+       enddo
+       write(tmpstr,'(a,5i8)') subname//' setting ESMF_GRIDITEM_AREA using tarea '
+       call ESMF_LogWrite(trim(tmpstr), ESMF_LOGMSG_INFO, line=__LINE__, file=__FILE__, rc=dbrc)
+      endif
 
        do j1 = lbnd(2),ubnd(2)
        do i1 = lbnd(1),ubnd(1)
@@ -460,7 +477,6 @@ module cice_cap_mod
           coordXcenter(i1,j1) = TLON(i,j,iblk) * rad_to_deg
           coordYcenter(i1,j1) = TLAT(i,j,iblk) * rad_to_deg
           gridmask(i1,j1) = nint(hm(i,j,iblk))
-!         gridarea(i1,j1) = tarea(i,j,iblk)
        enddo
        enddo
 
@@ -834,8 +850,7 @@ module cice_cap_mod
       endif
     enddo
 #endif
-  endif  ! write_diagnostics
-         ! import fields
+  endif  ! write_diagnostics import fields
 
     call State_getFldPtr(importState,'inst_temp_height_lowest',dataPtr_Tbot,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,line=__LINE__,file=__FILE__)) return
@@ -1177,15 +1192,13 @@ module cice_cap_mod
       endif
     enddo
 #endif
-  endif  ! write_diagnostics
-         ! export fields
+  endif  ! write_diagnostics export fields
     write(info,*) subname,' --- run phase 4 called --- ',rc
     call ESMF_LogWrite(info, ESMF_LOGMSG_INFO, rc=dbrc)
 
 ! Dump out all the cice internal fields to cross-examine with those connected with mediator
 ! This will help to determine roughly which fields can be hooked into cice
 
-   ! if write_diagnostics = false, dumpCICEInternal just returns
    call dumpCICEInternal(ice_grid_i, import_slice, "inst_zonal_wind_height10m", "will provide", strax)
    call dumpCICEInternal(ice_grid_i, import_slice, "inst_merid_wind_height10m", "will provide", stray)
    call dumpCICEInternal(ice_grid_i, import_slice, "inst_pres_height_surface" , "will provide", zlvl)
