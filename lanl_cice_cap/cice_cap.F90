@@ -6,7 +6,11 @@
 ! 5/10/13
 ! This is now acting as a cap/connector between NUOPC driver and LANL CICE code.
 !
-
+! 8/27/18: Denise Worthen (denise.worthen@noaa.gov)
+!  * `GridAttachArea` - when set to "true", this option indicates that CICE grid attaches cell area
+!   using internal values computed in CICE. The default value is "false", so grid cell area will
+!   be computed in ESMF.
+ 
 module cice_cap_mod
 
   use ice_blocks, only: nx_block, ny_block, nblocks_tot, block, get_block, &
