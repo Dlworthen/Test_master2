@@ -117,10 +117,11 @@ program generate_cice_fix_file
   real(kind=8), dimension(ni,nj) :: anglet
 #endif
 
-  integer, parameter :: ncice = 5   ! required
+  integer, parameter :: ncice = 5  & ! required
 #ifdef debug
-                                   &
-                              + 7   ! extra
+                              + 7    ! extra
+#else
+                              + 0    ! extra
 #endif
   character(len=256) :: fname_out, fname_in
 
