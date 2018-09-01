@@ -854,7 +854,7 @@ module cice_cap_mod
       endif
     enddo
 #endif
-  endif  ! write_diagnostics import fields
+  endif  ! write_diagnostics 
 
     call State_getFldPtr(importState,'inst_temp_height_lowest',dataPtr_Tbot,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU,line=__LINE__,file=__FILE__)) return
@@ -1196,7 +1196,7 @@ module cice_cap_mod
       endif
     enddo
 #endif
-  endif  ! write_diagnostics export fields
+  endif  ! write_diagnostics 
     write(info,*) subname,' --- run phase 4 called --- ',rc
     call ESMF_LogWrite(info, ESMF_LOGMSG_INFO, rc=dbrc)
 
