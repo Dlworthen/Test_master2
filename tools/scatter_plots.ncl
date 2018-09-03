@@ -59,6 +59,7 @@
 ;************************************************
 
      gf = addfile(rtsrc+varsrc,"r")
+   plottitle = rtsrc+varsrc
 
   centerlat = gf->$centerlatname$(:,:)
   centerlon = gf->$centerlonname$(:,:)
@@ -243,6 +244,8 @@ end
 ;************************************************
 ; make the panel
 ;************************************************
+  resP@gsnPanelMainString  = plottitle
+  resP@gsnPanelMainFontHeightF = 0.010            ; new resource added in NCL V6.4.0
 
   gsn_panel(wks,map,(/2,2/),resP)
   frame(wks)
