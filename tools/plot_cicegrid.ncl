@@ -16,14 +16,14 @@ begin
   ;grres = "mx1"
   grres = "mx025"
 
-  ;varname = "htn"
-  varname = "hte"
+  varname = "htn"
+  ;varname = "hte"
 
 ;************************************************
 ; read in netCDF file
 ;************************************************
 
-     rtsrc = "$WORK/EMC_CICE/"
+     rtsrc = "$WORK/EMC_CICE/tools/"
   ; get ang from cice grid file 
    varsrc  = "grid_cice_NEMS_"+grres+".nc"
 

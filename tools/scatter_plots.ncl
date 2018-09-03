@@ -18,7 +18,7 @@
 ; read in netCDF file
 ;************************************************
 
-     rtsrc = "/home/Denise.Worthen/MOM2CICE_3/"
+     rtsrc = "$WORK/EMC_CICE/tools/"
   ; get ang from cice grid file 
    varsrc  = "grid_cice_NEMS_"+grres+".nc"
 
