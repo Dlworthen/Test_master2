@@ -16,15 +16,15 @@ begin
   grres = "mx1"
   ;grres = "mx025"
 
-  angle2plot = "angle"
+  ;angle2plot = "angle"
   ; only after debug mode
-  ;angle2plot = "anglet"
+  angle2plot = "anglet"
 
 ;************************************************
 ; read in netCDF file
 ;************************************************
 
-     rtsrc = "/home/Denise.Worthen/MOM2CICE_3/"
+     rtsrc = "$WORK/EMC_CICE/"
   ; get ang from cice grid file 
    varsrc  = "grid_cice_NEMS_"+grres+".nc"
 
@@ -40,6 +40,7 @@ begin
      filesrc = addfile(rtsrc+varsrc,"r")
    plottitle = rtsrc+varsrc
        levs = (/-1.6, 1.6, 0.1/)
+;       levs = (/-0.6, 0.6, 0.02/)
 
 ;************************************************
 ; add a poly line showing the polar seem along

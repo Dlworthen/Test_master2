@@ -3,8 +3,8 @@ program generate_cice_fix_file
 ! Denise.Worthen@noaa.gov
 ! Jiande.Wang@noaa.gov
 !
-!#define output_grid_1deg
-#define output_grid_qdeg
+#define output_grid_1deg
+!#define output_grid_qdeg
 ! writes out additional variables not needed by CICE but which can be 
 ! helpful in diagnosing grid generation errors
 #define debug
