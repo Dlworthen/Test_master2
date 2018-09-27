@@ -95,7 +95,7 @@ program generate_cice_fix_file
 #endif
 #ifdef output_grid_qdeg
   integer, parameter :: ni = 1440, nj = 1080
-  character(len=256) :: dirsrc = '/scratch4/NCEPDEV/nems/noscrub/emc.nemspara/RT/FV3-MOM6-CICE5/master-20180821/MOM6_FIX_025deg/'
+  character(len=256) :: dirsrc = '/scratch4/NCEPDEV/nems/noscrub/emc.nemspara/RT/FV3-MOM6-CICE5/benchmark-20180913/MOM6_FIX_025deg/'
   character(len=256) :: dirout = './'
   character(len= 10) :: res = 'mx025'
 
@@ -111,7 +111,7 @@ program generate_cice_fix_file
   real(kind=8), dimension(  nx,0:ny)   :: dx
   real(kind=8), dimension(0:nx,  ny)   :: dy
 
-  !replicate row 
+  !super-grid replicate row 
   real(kind=8), dimension(0:nx,0:ny+1) :: xsgp1, ysgp1
 
   ! required CICE grid variables
@@ -144,6 +144,7 @@ program generate_cice_fix_file
   character(len=256) :: history
   character(len=  8) :: cdate
 
+  ! from geolonB fix in MOM6
   real(kind=8) :: len_lon ! The periodic range of longitudes, usually 360 degrees.
   real(kind=8) :: pi_720deg ! One quarter the conversion factor from degrees to radians.
   real(kind=8) :: lonB(2,2)  ! The longitude of a point, shifted to have about the same value.
@@ -213,7 +214,6 @@ program generate_cice_fix_file
   enddo
   print *,'poles found at ',ipole
 
-  !replicate supergrid across pole
   xsgp1(:,0:ny) = x(:,0:ny)
   ysgp1(:,0:ny) = y(:,0:ny)
   
@@ -228,8 +228,9 @@ program generate_cice_fix_file
    print *,i,i2
   enddo
 
+  !replicate supergrid across pole
   do i = 1,nx
-   i2 = ipole(2)+(ipole(1)-i)
+    i2 = ipole(2)+(ipole(1)-i)
    xsgp1(i,ny+1) = xsgp1(i2,ny)
    ysgp1(i,ny+1) = ysgp1(i2,ny)
   enddo
@@ -253,6 +254,8 @@ program generate_cice_fix_file
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! rotation angle on supergrid vertices
+! lonB: x(i-1,j-1) has same relationship to x(i,j) on SG as 
+!       geolonT(i,j) has to geolonBu(i,j) on the reduced grid
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    pi_720deg = atan(1.0) / 180.0
