@@ -1342,11 +1342,12 @@ module cice_cap_mod
 ! This will help to determine roughly which fields can be hooked into cice
 
    internal_slice=internal_slice+1
-   call dumpCICEInternal(ice_grid_i, internal_slice, "inst_zonal_wind_height10m", "will provide", strax)
-   call dumpCICEInternal(ice_grid_i, internal_slice, "inst_merid_wind_height10m", "will provide", stray)
-   call dumpCICEInternal(ice_grid_i, internal_slice, "inst_pres_height_surface" , "will provide", zlvl)
+   !call dumpCICEInternal(ice_grid_i, internal_slice, "inst_zonal_wind_height10m", "will provide", strax)
+   !call dumpCICEInternal(ice_grid_i, internal_slice, "inst_merid_wind_height10m", "will provide", stray)
+   !call dumpCICEInternal(ice_grid_i, internal_slice, "inst_pres_height_surface" , "will provide", zlvl)
    !call dumpCICEInternal(ice_grid_i, internal_slice, "xx_pot_air_temp"          , "will provide", potT)
    !call dumpCICEInternal(ice_grid_i, internal_slice, "inst_temp_height2m"       , "will provide", Tair)
+   call dumpCICEInternal(ice_grid_i, internal_slice, "inst_temp_height_lowest",    "will provide", Tair)
    !call dumpCICEInternal(ice_grid_i, internal_slice, "inst_spec_humid_height2m" , "will provide", Qa)
    !call dumpCICEInternal(ice_grid_i, internal_slice, "xx_inst_air_density"      , "will provide", rhoa)
    !call dumpCICEInternal(ice_grid_i, internal_slice, "mean_down_sw_vis_dir_flx" , "will provide", swvdr)
