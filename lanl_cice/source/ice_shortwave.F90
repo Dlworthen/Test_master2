@@ -44,10 +44,10 @@
       use ice_kinds_mod
       use ice_domain_size, only: nilyr, nslyr, ncat, n_aero, max_blocks, max_aero
       use ice_constants
-      !use ice_blocks, only: nx_block, ny_block, block, get_block
-      use ice_blocks, only: nx_block, ny_block
+      !use ice_blocks,     only: nx_block, ny_block, block, get_block
+      use ice_blocks,      only: nx_block, ny_block
       use ice_diagnostics, only: npnt, print_points, pmloc, piloc, pjloc
-      use ice_fileunits, only: nu_diag
+      use ice_fileunits,   only: nu_diag
       use ice_communicate, only: my_task
 
       implicit none
@@ -96,13 +96,13 @@
 
       real (kind=dbl_kind), dimension (nx_block,ny_block,ncat,max_blocks), &
          public :: &
-         fswsfcn     , & ! SW absorbed at ice/snow surface (W m-2)
-         fswthrun    , & ! SW through ice to ocean            (W/m^2)
+         fswsfcn        , & ! SW absorbed at ice/snow surface    (W m-2)
+         fswthrun       , & ! SW through ice to ocean            (W/m^2)
          fswthrunvdr    , & ! SW through ice to ocean            (W/m^2)
          fswthrunvdf    , & ! SW through ice to ocean            (W/m^2)
          fswthrunidr    , & ! SW through ice to ocean            (W/m^2)
          fswthrunidf    , & ! SW through ice to ocean            (W/m^2)
-         fswintn         ! SW absorbed in ice interior, below surface (W m-2)
+         fswintn            ! SW absorbed in ice interior, below surface (W m-2)
 
       real (kind=dbl_kind), dimension (nx_block,ny_block,nilyr+1,ncat,max_blocks), &
          public :: &
@@ -137,16 +137,17 @@
 
       subroutine init_shortwave
 
-      use ice_calendar, only: nstreams
-      use ice_domain, only: nblocks, blocks_ice
-      use ice_flux, only: alvdf, alidf, alvdr, alidr, &
-                          alvdr_ai, alidr_ai, alvdf_ai, alidf_ai, &
-                          swvdr, swvdf, swidr, swidf, &
-                          albice, albsno, albpnd, apeff_ai, albcnt, coszen, fsnow
-      use ice_orbital, only: init_orbit
-      use ice_state, only: aicen, vicen, vsnon, trcrn, nt_Tsfc
-      use ice_blocks, only: block, get_block
-      use ice_grid, only: tmask, tlat, tlon
+      use ice_calendar,     only: nstreams
+      use ice_domain,       only: nblocks, blocks_ice
+      use ice_flux,         only: alvdf, alidf, alvdr, alidr,             &
+                                  alvdr_ai, alidr_ai, alvdf_ai, alidf_ai, &
+                                  swvdr, swvdf, swidr, swidf,             &
+                                  albice, albsno, albpnd, apeff_ai,       &
+                                  albcnt, coszen, fsnow
+      use ice_orbital,      only: init_orbit
+      use ice_state,        only: aicen, vicen, vsnon, trcrn, nt_Tsfc
+      use ice_blocks,       only: block, get_block
+      use ice_grid,         only: tmask, tlat, tlon
       use ice_meltpond_lvl, only: dhsn, ffracn
 
       integer (kind=int_kind) :: &
@@ -156,30 +157,30 @@
          indxi, indxj    ! indirect indices for cells with aicen > puny
 
       integer (kind=int_kind) :: &
-         i, j, ij    , & ! horizontal indices
-         iblk        , & ! block index
+         i, j, ij       , & ! horizontal indices
+         iblk           , & ! block index
          ilo,ihi,jlo,jhi, & ! beginning and end of physical domain
-         n               ! thickness category index
+         n                  ! thickness category index
 
       real (kind=dbl_kind) :: cszn ! counter for history averaging
 
       type (block) :: &
          this_block      ! block information for current block
 
-      !$OMP PARALLEL DO PRIVATE(iblk,i,j)
+      !$OMP PARALLEL DO default(shared) PRIVATE(iblk,i,j)
       do iblk=1,nblocks
-      do j = 1, ny_block
-      do i = 1, nx_block
-         alvdf(i,j,iblk) = c0
-         alidf(i,j,iblk) = c0
-         alvdr(i,j,iblk) = c0
-         alidr(i,j,iblk) = c0
-         alvdr_ai(i,j,iblk) = c0
-         alidr_ai(i,j,iblk) = c0
-         alvdf_ai(i,j,iblk) = c0
-         alidf_ai(i,j,iblk) = c0
-      enddo
-      enddo
+        do j = 1, ny_block
+          do i = 1, nx_block
+            alvdf   (i,j,iblk) = c0
+            alidf   (i,j,iblk) = c0
+            alvdr   (i,j,iblk) = c0
+            alidr   (i,j,iblk) = c0
+            alvdr_ai(i,j,iblk) = c0
+            alidr_ai(i,j,iblk) = c0
+            alvdf_ai(i,j,iblk) = c0
+            alidf_ai(i,j,iblk) = c0
+          enddo
+        enddo
       enddo
       !$OMP END PARALLEL DO
 
@@ -189,7 +190,7 @@
          ! These come from the driver in the coupled model.
          call init_orbit       ! initialize orbital parameters
 #endif
-         !$OMP PARALLEL DO PRIVATE(iblk,ilo,ihi,jlo,jhi,this_block)
+         !$OMP PARALLEL DO default(shared) PRIVATE(iblk,ilo,ihi,jlo,jhi,this_block)
          do iblk=1,nblocks
 
             this_block = get_block(blocks_ice(iblk),iblk)         
@@ -199,32 +200,32 @@
             jhi = this_block%jhi
 
             ! initialize delta Eddington
-            call run_dEdd(ilo, ihi, jlo, jhi,                             &
-                          aicen(:,:,:,iblk),     vicen(:,:,:,iblk),       &
-                          vsnon(:,:,:,iblk),     trcrn(:,:,:,:,iblk),     &
-                          tlat(:,:,iblk),        tlon(:,:,iblk),          & 
-                          tmask(:,:,iblk),                                &
-                          swvdr(:,:,iblk),       swvdf(:,:,iblk),         &
-                          swidr(:,:,iblk),       swidf(:,:,iblk),         &
-                          coszen(:,:,iblk),      fsnow(:,:,iblk),         &
-                          alvdrn(:,:,:,iblk),    alvdfn(:,:,:,iblk),      &
-                          alidrn(:,:,:,iblk),    alidfn(:,:,:,iblk),      &
-                          fswsfcn(:,:,:,iblk),   fswintn(:,:,:,iblk),     &
-                          fswthrun(:,:,:,iblk),                           &
-                          fswthrunvdr(:,:,:,iblk),  fswthrunvdf(:,:,:,iblk),  &
-                          fswthrunidr(:,:,:,iblk),  fswthrunidf(:,:,:,iblk),  &
-                          fswpenln(:,:,:,:,iblk),  &
-                          Sswabsn(:,:,:,:,iblk), Iswabsn(:,:,:,:,iblk),   &
-                          albicen(:,:,:,iblk),   albsnon(:,:,:,iblk),     &
-                          albpndn(:,:,:,iblk),   apeffn(:,:,:,iblk),      &
-                          dhsn(:,:,:,iblk),      ffracn(:,:,:,iblk))
+            call run_dEdd(ilo, ihi, jlo, jhi,                                &
+                          aicen(:,:,:,iblk),        vicen(:,:,:,iblk),       &
+                          vsnon(:,:,:,iblk),        trcrn(:,:,:,:,iblk),     &
+                          tlat(:,:,iblk),           tlon(:,:,iblk),          & 
+                          tmask(:,:,iblk),                                   &
+                          swvdr(:,:,iblk),          swvdf(:,:,iblk),         &
+                          swidr(:,:,iblk),          swidf(:,:,iblk),         &
+                          coszen(:,:,iblk),         fsnow(:,:,iblk),         &
+                          alvdrn(:,:,:,iblk),       alvdfn(:,:,:,iblk),      &
+                          alidrn(:,:,:,iblk),       alidfn(:,:,:,iblk),      &
+                          fswsfcn(:,:,:,iblk),      fswintn(:,:,:,iblk),     &
+                          fswthrun(:,:,:,iblk),                              &
+                          fswthrunvdr(:,:,:,iblk),  fswthrunvdf(:,:,:,iblk), &
+                          fswthrunidr(:,:,:,iblk),  fswthrunidf(:,:,:,iblk), &
+                          fswpenln(:,:,:,:,iblk),                            &
+                          Sswabsn(:,:,:,:,iblk),    Iswabsn(:,:,:,:,iblk),   &
+                          albicen(:,:,:,iblk),      albsnon(:,:,:,iblk),     &
+                          albpndn(:,:,:,iblk),      apeffn(:,:,:,iblk),      &
+                          dhsn(:,:,:,iblk),         ffracn(:,:,:,iblk))
 
          enddo
          !$OMP END PARALLEL DO
 
       else                     ! basic (ccsm3) shortwave
 
-         !$OMP PARALLEL DO PRIVATE(iblk,ilo,ihi,jlo,jhi,this_block)
+         !$OMP PARALLEL DO default(shared) PRIVATE(iblk,ilo,ihi,jlo,jhi,this_block)
          do iblk=1,nblocks
 
             this_block = get_block(blocks_ice(iblk),iblk)         
@@ -260,62 +261,62 @@
       ! Aggregate albedos 
       !-----------------------------------------------------------------
 
-      !$OMP PARALLEL DO PRIVATE(iblk,i,j,n,ilo,ihi,jlo,jhi,this_block, &
+      !$OMP PARALLEL DO default(shared) PRIVATE(iblk,i,j,n,ilo,ihi,jlo,jhi,this_block, &
       !$OMP                     ij,icells,cszn)
       do iblk=1,nblocks
-         this_block = get_block(blocks_ice(iblk),iblk)         
-         ilo = this_block%ilo
-         ihi = this_block%ihi
-         jlo = this_block%jlo
-         jhi = this_block%jhi
+        this_block = get_block(blocks_ice(iblk),iblk)         
+        ilo = this_block%ilo
+        ihi = this_block%ihi
+        jlo = this_block%jlo
+        jhi = this_block%jhi
 
-         do n = 1, ncat
+        do n = 1, ncat
 
-            icells = 0
-            do j = jlo, jhi
+          icells = 0
+          do j = jlo, jhi
             do i = ilo, ihi
-               if (aicen(i,j,n,iblk) > puny) then
-                  icells = icells + 1
-                  indxi(icells) = i
-                  indxj(icells) = j
-               endif
-            enddo               ! i
-            enddo               ! j
+              if (aicen(i,j,n,iblk) > puny) then
+                icells = icells + 1
+                indxi(icells) = i
+                indxj(icells) = j
+              endif
+            enddo             ! i
+          enddo               ! j
 
-            do ij = 1, icells
-               i = indxi(ij)
-               j = indxj(ij)
+          do ij = 1, icells
+            i = indxi(ij)
+            j = indxj(ij)
 
-               alvdf(i,j,iblk) = alvdf(i,j,iblk) &
-                  + alvdfn(i,j,n,iblk)*aicen(i,j,n,iblk)
-               alidf(i,j,iblk) = alidf(i,j,iblk) &
-                  + alidfn(i,j,n,iblk)*aicen(i,j,n,iblk)
-               alvdr(i,j,iblk) = alvdr(i,j,iblk) &
-                  + alvdrn(i,j,n,iblk)*aicen(i,j,n,iblk)
-               alidr(i,j,iblk) = alidr(i,j,iblk) &
-                  + alidrn(i,j,n,iblk)*aicen(i,j,n,iblk)
+            alvdf(i,j,iblk) = alvdf(i,j,iblk)                  &
+                            + alvdfn(i,j,n,iblk)*aicen(i,j,n,iblk)
+            alidf(i,j,iblk) = alidf(i,j,iblk)                  &
+                           + alidfn(i,j,n,iblk)*aicen(i,j,n,iblk)
+            alvdr(i,j,iblk) = alvdr(i,j,iblk)                  &
+                            + alvdrn(i,j,n,iblk)*aicen(i,j,n,iblk)
+            alidr(i,j,iblk) = alidr(i,j,iblk)                  &
+                            + alidrn(i,j,n,iblk)*aicen(i,j,n,iblk)
 
-               if (coszen(i,j,iblk) > puny) then ! sun above horizon
-               albice(i,j,iblk) = albice(i,j,iblk) &
-                  + albicen(i,j,n,iblk)*aicen(i,j,n,iblk)
-               albsno(i,j,iblk) = albsno(i,j,iblk) &
-                  + albsnon(i,j,n,iblk)*aicen(i,j,n,iblk)
-               albpnd(i,j,iblk) = albpnd(i,j,iblk) &
-                  + albpndn(i,j,n,iblk)*aicen(i,j,n,iblk)
-               endif
+            if (coszen(i,j,iblk) > puny) then ! sun above horizon
+              albice(i,j,iblk) = albice(i,j,iblk)                  &
+                               + albicen(i,j,n,iblk)*aicen(i,j,n,iblk)
+              albsno(i,j,iblk) = albsno(i,j,iblk)                  &
+                               + albsnon(i,j,n,iblk)*aicen(i,j,n,iblk)
+              albpnd(i,j,iblk) = albpnd(i,j,iblk)                  &
+                               + albpndn(i,j,n,iblk)*aicen(i,j,n,iblk)
+            endif
 
-               apeff_ai(i,j,iblk) = apeff_ai(i,j,iblk) &
-                  + apeffn(i,j,n,iblk)*aicen(i,j,n,iblk)
-            enddo
+            apeff_ai(i,j,iblk) = apeff_ai(i,j,iblk)                  &
+                               + apeffn(i,j,n,iblk)*aicen(i,j,n,iblk)
+          enddo
 
-         enddo  ! ncat
+        enddo  ! ncat
 
       !----------------------------------------------------------------
       ! Store grid box mean albedos and fluxes before scaling by aice
       !----------------------------------------------------------------
 
-         do j = 1, ny_block
-         do i = 1, nx_block
+        do j = 1, ny_block
+          do i = 1, nx_block
             alvdf_ai  (i,j,iblk) = alvdf  (i,j,iblk)
             alidf_ai  (i,j,iblk) = alidf  (i,j,iblk)
             alvdr_ai  (i,j,iblk) = alvdr  (i,j,iblk)
@@ -324,11 +325,11 @@
             ! for history averaging
             cszn = c0
             if (coszen(i,j,iblk) > puny) cszn = c1
-            do n = 1, nstreams
-               albcnt(i,j,iblk,n) = albcnt(i,j,iblk,n) + cszn
-            enddo
-         enddo
-         enddo
+              do n = 1, nstreams
+                albcnt(i,j,iblk,n) = albcnt(i,j,iblk,n) + cszn
+              enddo
+          enddo
+        enddo
 
       enddo     ! nblocks
       !$OMP END PARALLEL DO
@@ -588,7 +589,8 @@
          fT  , & ! piecewise linear function of surface temperature
          dTs , & ! difference of Tsfc and Timelt
          fhtan,& ! factor used in albedo dependence on ice thickness
-         asnow   ! fractional area of snow cover
+         asnow,& ! fractional area of snow cover
+         onema   ! 1.0 - asnow
 
       integer (kind=int_kind) :: &
          ij      ! horizontal index, combines i and j loops
@@ -671,16 +673,13 @@
          else
             asnow = c0
          endif
+         onema = c1 - asnow
 
          ! combine ice and snow albedos (for coupler)
-         alvdfn(i,j) = alvdfni(i,j)*(c1-asnow) + &
-                       alvdfns(i,j)*asnow
-         alidfn(i,j) = alidfni(i,j)*(c1-asnow) + &
-                       alidfns(i,j)*asnow
-         alvdrn(i,j) = alvdrni(i,j)*(c1-asnow) + &
-                       alvdrns(i,j)*asnow
-         alidrn(i,j) = alidrni(i,j)*(c1-asnow) + &
-                       alidrns(i,j)*asnow
+         alvdfn(i,j) = alvdfni(i,j)*onema + alvdfns(i,j)*asnow
+         alidfn(i,j) = alidfni(i,j)*onema + alidfns(i,j)*asnow
+         alvdrn(i,j) = alvdrni(i,j)*onema + alvdrns(i,j)*asnow
+         alidrn(i,j) = alidrni(i,j)*onema + alidrns(i,j)*asnow
 
          ! save ice and snow albedos (for history)
          albin(i,j) = awtvdr*alvdrni(i,j) + awtidr*alidrni(i,j) &
@@ -759,15 +758,15 @@
          ij      ! horizontal index, combines i and j loops
 
       do j = 1, ny_block
-      do i = 1, nx_block
-         alvdrn(i,j) = albocn
-         alidrn(i,j) = albocn
-         alvdfn(i,j) = albocn
-         alidfn(i,j) = albocn
+        do i = 1, nx_block
+          alvdrn(i,j) = albocn
+          alidrn(i,j) = albocn
+          alvdfn(i,j) = albocn
+          alidfn(i,j) = albocn
 
-         albin(i,j) = c0
-         albsn(i,j) = c0
-      enddo
+          albin(i,j) = c0
+          albsn(i,j) = c0
+        enddo
       enddo
 
       !-----------------------------------------------------------------
@@ -915,25 +914,26 @@
          hi          , & ! ice thickness (m)
          hs          , & ! snow thickness (m)
          hilyr       , & ! ice layer thickness
-         asnow           ! fractional area of snow cover
+         asnow       , & ! fractional area of snow cover
+         onema           ! 1.0 - asnow
 
       !-----------------------------------------------------------------
       ! Initialize
       !-----------------------------------------------------------------
 
       do j = 1, ny_block
-      do i = 1, nx_block
-         fswsfc (i,j) = c0
-         fswint (i,j) = c0
-         fswthru(i,j) = c0
-         fswthruvdr(i,j) = c0
-         fswthruvdf(i,j) = c0
-         fswpen (i,j) = c0
-         fswpenvdr (i,j) = c0
-         fswpenvdf (i,j) = c0
-         trantop(i,j) = c0
-         tranbot(i,j) = c0
-      enddo
+        do i = 1, nx_block
+          fswsfc (i,j)    = c0
+          fswint (i,j)    = c0
+          fswthru(i,j)    = c0
+          fswthruvdr(i,j) = c0
+          fswthruvdf(i,j) = c0
+          fswpen (i,j)    = c0
+          fswpenvdr (i,j) = c0
+          fswpenvdf (i,j) = c0
+          trantop(i,j)    = c0
+          tranbot(i,j)    = c0
+        enddo
       enddo
       Iswabs (:,:,:) = c0
 
@@ -951,6 +951,7 @@
          else
             asnow = c0
          endif
+         onema = c1 - asnow
 
       !-----------------------------------------------------------------
       ! Shortwave flux absorbed at surface, absorbed internally,
@@ -960,25 +961,25 @@
       !  transmitted to the ocean.
       !-----------------------------------------------------------------
 
-         swabsv  = swvdr(i,j) * ( (c1-alvdrni(i,j))*(c1-asnow) &
-                                + (c1-alvdrns(i,j))*asnow ) &
-                 + swvdf(i,j) * ( (c1-alvdfni(i,j))*(c1-asnow) &
-                                + (c1-alvdfns(i,j))*asnow )
+         swabsv = swvdr(i,j) * ( (c1-alvdrni(i,j))*onema   &
+                               + (c1-alvdrns(i,j))*asnow ) &
+                + swvdf(i,j) * ( (c1-alvdfni(i,j))*onema   &
+                               + (c1-alvdfns(i,j))*asnow )
 
-         swabsi  = swidr(i,j) * ( (c1-alidrni(i,j))*(c1-asnow) &
-                                + (c1-alidrns(i,j))*asnow ) &
-                 + swidf(i,j) * ( (c1-alidfni(i,j))*(c1-asnow) &
-                                + (c1-alidfns(i,j))*asnow )
+         swabsi = swidr(i,j) * ( (c1-alidrni(i,j))*onema   &
+                               + (c1-alidrns(i,j))*asnow ) &
+                + swidf(i,j) * ( (c1-alidfni(i,j))*onema   &
+                               + (c1-alidfns(i,j))*asnow )
 
          swabs   = swabsv + swabsi
          if (hs <= hs_min) swabs = c0
 
-         fswpenvdr(i,j) = swvdr(i,j) * (c1-alvdrni(i,j)) * (c1-asnow) * i0vis
-         fswpenvdf(i,j) = swvdf(i,j) * (c1-alvdfni(i,j)) * (c1-asnow) * i0vis
+         fswpenvdr(i,j) = swvdr(i,j) * (c1-alvdrni(i,j)) * onema * i0vis
+         fswpenvdf(i,j) = swvdf(i,j) * (c1-alvdfni(i,j)) * onema * i0vis
 
           ! no penetrating radiation in near IR
-!         fswpenidr = swidr(i,j) * (c1-alidrni(i,j)) * (c1-asnow) * i0nir
-!         fswpenidf = swidf(i,j) * (c1-alidfni(i,j)) * (c1-asnow) * i0nir  
+!         fswpenidr = swidr(i,j) * (c1-alidrni(i,j)) * onema * i0nir
+!         fswpenidf = swidf(i,j) * (c1-alidfni(i,j)) * onema * i0nir  
 
          fswpen(i,j) = fswpenvdr(i,j) + fswpenvdf(i,j)
                       

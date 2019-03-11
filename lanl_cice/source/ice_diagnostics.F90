@@ -23,7 +23,7 @@
       public :: runtime_diags, init_mass_diags, init_diags, print_state
 
       save
-	
+
       ! diagnostic output file
       character (len=char_len), public :: diag_file
 
@@ -183,11 +183,11 @@
       work1(:,:,:) = c0
       !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
-         do j = 1, ny_block
-         do i = 1, nx_block
+        do j = 1, ny_block
+          do i = 1, nx_block
             if (aice(i,j,iblk) >= aice_extmin) work1(i,j,iblk) = c1
-         enddo
-         enddo
+          enddo
+        enddo
       enddo
       !$OMP END PARALLEL DO
       extentn = global_sum(work1, distrb_info, field_loc_center, &
@@ -210,19 +210,19 @@
       ptots = c0
       if (tr_pond_topo) then
          !$OMP PARALLEL DO PRIVATE(iblk,i,j,n)
-         do iblk = 1, nblocks
-         do j = 1, ny_block
-         do i = 1, nx_block
-            work1(i,j,iblk) = c0
-            do n = 1, ncat
-               work1(i,j,iblk) = work1(i,j,iblk)  &
-                               + aicen(i,j,n,iblk) &
-                               * trcrn(i,j,nt_apnd,n,iblk) & 
-                               * trcrn(i,j,nt_hpnd,n,iblk)
+        do iblk = 1, nblocks
+          do j = 1, ny_block
+            do i = 1, nx_block
+              work1(i,j,iblk) = c0
+              do n = 1, ncat
+                work1(i,j,iblk) = work1(i,j,iblk)  &
+                                + aicen(i,j,n,iblk) &
+                                * trcrn(i,j,nt_apnd,n,iblk) & 
+                                * trcrn(i,j,nt_hpnd,n,iblk)
+              enddo
             enddo
-         enddo
-         enddo
-         enddo
+          enddo
+        enddo
          !$OMP END PARALLEL DO
          ptotn = global_sum(work1, distrb_info, field_loc_center, tarean)
          ptots = global_sum(work1, distrb_info, field_loc_center, tareas)
@@ -231,13 +231,13 @@
       ! total ice-snow kinetic energy
       !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
-         do j = 1, ny_block
-         do i = 1, nx_block
+        do j = 1, ny_block
+          do i = 1, nx_block
             work1(i,j,iblk) = p5 &
                            * (rhos*vsno(i,j,iblk) + rhoi*vice(i,j,iblk)) &
                            * (uvel(i,j,iblk)**2 + vvel(i,j,iblk)**2)
-         enddo
-         enddo
+          enddo
+        enddo
       enddo
       !$OMP END PARALLEL DO
       ketotn = global_sum(work1, distrb_info, field_loc_center, tarean)
@@ -263,8 +263,8 @@
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
-         do j = 1, ny_block
-         do i = 1, nx_block
+        do j = 1, ny_block
+          do i = 1, nx_block
             work1(i,j,iblk) = alvdr(i,j,iblk)*awtvdr &
                             + alidr(i,j,iblk)*awtidr &
                             + alvdf(i,j,iblk)*awtvdf &
@@ -274,8 +274,8 @@
             else
                work2(i,j,iblk) = c0
             endif
-         enddo
-         enddo
+          enddo
+        enddo
       enddo
       !$OMP END PARALLEL DO
       
@@ -292,15 +292,15 @@
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
-         do j = 1, ny_block
-         do i = 1, nx_block
+        do j = 1, ny_block
+          do i = 1, nx_block
             if (coszen(i,j,iblk) > puny) then
                work2(i,j,iblk) = tareas(i,j,iblk)
             else
                work2(i,j,iblk) = c0
             endif
-         enddo
-         enddo
+          enddo
+        enddo
       enddo
       !$OMP END PARALLEL DO
 
@@ -322,12 +322,12 @@
       ! maximum ice speed
       !$OMP PARALLEL DO PRIVATE(iblk,i,j)
       do iblk = 1, nblocks
-         do j = 1, ny_block
-         do i = 1, nx_block
+        do j = 1, ny_block
+          do i = 1, nx_block
             work1(i,j,iblk) = sqrt(uvel(i,j,iblk)**2 &
                                  + vvel(i,j,iblk)**2)
-         enddo
-         enddo
+          enddo
+        enddo
       enddo
       !$OMP END PARALLEL DO
 
@@ -338,8 +338,8 @@
       ! (Ice speeds of ~1 m/s or more usually indicate instability)
 
       if (check_umax) then
-      	 if (umaxn > umax_stab) then
-            !$OMP PARALLEL DO PRIVATE(iblk,i,j)
+         if (umaxn > umax_stab) then
+!           !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
             do j = 1, ny_block
             do i = 1, nx_block
@@ -352,9 +352,9 @@
             enddo
             enddo
             enddo
-            !$OMP END PARALLEL DO
+!           !$OMP END PARALLEL DO
          elseif (umaxs > umax_stab) then
-            !$OMP PARALLEL DO PRIVATE(iblk,i,j)
+!           !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
             do j = 1, ny_block
             do i = 1, nx_block
@@ -367,7 +367,7 @@
             enddo
             enddo
             enddo
-            !$OMP END PARALLEL DO
+!           !$OMP END PARALLEL DO
          endif   ! umax
       endif      ! check_umax
 
@@ -466,15 +466,15 @@
 
             !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
-               do j = 1, ny_block
-               do i = 1, nx_block
+              do j = 1, ny_block
+                do i = 1, nx_block
                   work1(i,j,iblk) = &
                      (fswabs(i,j,iblk) - fswthru(i,j,iblk) &
                     + fsens (i,j,iblk) + flwout (i,j,iblk)) &
                                                   * aice      (i,j,iblk) &
                     + flw   (i,j,iblk) * aice_init (i,j,iblk)
-               enddo
-               enddo
+                enddo
+              enddo
             enddo
             !$OMP END PARALLEL DO
 
@@ -482,13 +482,13 @@
 
             !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
-               do j = 1, ny_block
-               do i = 1, nx_block
+              do j = 1, ny_block
+                do i = 1, nx_block
                   work1(i,j,iblk) = &
                              (fsurf(i,j,iblk) - flat(i,j,iblk)) & 
                               * aice(i,j,iblk)
-               enddo
-               enddo
+                enddo
+              enddo
             enddo
             !$OMP END PARALLEL DO
 
@@ -502,11 +502,11 @@
          ! freezing potential
          !$OMP PARALLEL DO PRIVATE(iblk,i,j)
          do iblk = 1, nblocks
-            do j = 1, ny_block
-            do i = 1, nx_block
+           do j = 1, ny_block
+             do i = 1, nx_block
                work1(i,j,iblk) = max(c0,frzmlt_init(i,j,iblk))
-            enddo
-            enddo
+             enddo
+           enddo
          enddo
          !$OMP END PARALLEL DO
          fhfrzn = global_sum(work1, distrb_info, &
@@ -629,15 +629,15 @@
 
             !$OMP PARALLEL DO PRIVATE(iblk,i,j)
             do iblk = 1, nblocks
-               do j = 1, ny_block
-               do i = 1, nx_block
+              do j = 1, ny_block
+                do i = 1, nx_block
                   work1(i,j,iblk) = &
                    trcr(i,j,nt_aero  +4*(n-1),iblk)*vsno(i,j,iblk) &
                  + trcr(i,j,nt_aero+1+4*(n-1),iblk)*vsno(i,j,iblk) &
                  + trcr(i,j,nt_aero+2+4*(n-1),iblk)*vice(i,j,iblk) &
                  + trcr(i,j,nt_aero+3+4*(n-1),iblk)*vice(i,j,iblk)
-               enddo
-               enddo
+                enddo
+              enddo
             enddo
             !$OMP END PARALLEL DO
             aerototn(n) = global_sum(work1, distrb_info, field_loc_center, tarean)
@@ -1239,16 +1239,16 @@
             bindx = 0
             mindis = 540.0_dbl_kind !  360. + 180.
 
-            !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,latdis,londis,totdis)
+!!$OMP PARALLEL DO default(shared) PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,latdis,londis,totdis)
             do iblk = 1, nblocks
-               this_block = get_block(blocks_ice(iblk),iblk)         
-               ilo = this_block%ilo
-               ihi = this_block%ihi
-               jlo = this_block%jlo
-               jhi = this_block%jhi
+              this_block = get_block(blocks_ice(iblk),iblk)         
+              ilo = this_block%ilo
+              ihi = this_block%ihi
+              jlo = this_block%jlo
+              jhi = this_block%jhi
 
-               do j = jlo, jhi
-               do i = ilo, ihi
+              do j = jlo, jhi
+                do i = ilo, ihi
                   if (hm(i,j,iblk) > p5) then
                      latdis = abs(latpnt(n)-TLAT(i,j,iblk)*rad_to_deg)
                      londis = abs(lonpnt(n)-TLON(i,j,iblk)*rad_to_deg) &
@@ -1261,10 +1261,10 @@
                         bindx = iblk
                      endif      ! totdis < mindis
                   endif         ! hm > p5
-               enddo            ! i
-               enddo            ! j
+                enddo           ! i
+              enddo             ! j
             enddo               ! iblk
-            !$OMP END PARALLEL DO
+!!$OMP END PARALLEL DO
 
             ! find global minimum distance to diagnostic points 
             mindis_g = global_minval(mindis, distrb_info)
