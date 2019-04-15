@@ -53,9 +53,9 @@ SFC:= ifort
                 -DTRBGCS=$(TRBGCS) -DNUMIN=$(NUMIN) -DNUMAX=$(NUMAX)
 
 ifeq ($(compile_threaded), true) 
-   LDFLAGS += -openmp 
-   CFLAGS += -openmp 
-   FFLAGS += -openmp 
+   LDFLAGS += -qopenmp 
+   CFLAGS += -qopenmp 
+   FFLAGS += -qopenmp 
 endif
 
 ifeq ($(DITTO), yes)
