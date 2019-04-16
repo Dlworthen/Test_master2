@@ -20,9 +20,16 @@ begin
 ; angle values
 ;************************************************
 
-   nemsrc  = "/scratch4/NCEPDEV/ocean/save/Denise.Worthen/NEMS_INPUT0.1/"
-   wgtsrc  = nemsrc+"regrids/"
-   wgtfile = "mom6_rect024.nc"
+   dirname="/scratch3/NCEPDEV/stmp2/Denise.Worthen/Benchtest/"
+   res="025"
+   system("/bin/mkdir "+dirname+res)
+
+   ;nemsrc  = "/scratch4/NCEPDEV/ocean/save/Denise.Worthen/NEMS_INPUT0.1/"
+
+   ;wgtsrc  = "$WORK/EMC_CICE/tools/post/"
+   ;wgtfile = "cice5_tripole_tgrid_rect024.nc"
+   wgtsrc  = "/scratch4/NCEPDEV/ocean/save/Bhavani.Rajan/post/"
+   wgtfile = "remap.grid_t."+res+"deg.bil.nc"
       wgts = wgtsrc + wgtfile
 
 ;************************************************
@@ -31,15 +38,15 @@ begin
 ; to supply the specific names in your remap file
 ;************************************************
 
-        dstgrid = "etopo024_oceanmask.nc"
-     dstlatname = "lat"
-     dstlonname = "lon"
-    dstmaskname = "wet"
+    ;    dstgrid = "etopo024_oceanmask.nc"
+    ; dstlatname = "lat"
+    ; dstlonname = "lon"
+    ;dstmaskname = "wet"
 
-      gridfile = addfile(wgtsrc+dstgrid,"r")
-          dstlon = gridfile->$dstlonname$
-          dstlat = gridfile->$dstlatname$
-         dstmask = gridfile->$dstmaskname$
+     ; gridfile = addfile(nemsrc+"regrids/"+dstgrid,"r")
+      ;    dstlon = gridfile->$dstlonname$
+      ;    dstlat = gridfile->$dstlatname$
+      ;   dstmask = gridfile->$dstmaskname$
 
 ;************************************************
 ; make a list of the files from the run
@@ -51,37 +58,40 @@ begin
    icefilelist = systemfunc("ls "+dirname+"ice*.nc") 
           icef = addfiles(icefilelist,"r")
         nfiles = dimsizes(icefilelist)
-   ; print(nfiles)
+    ;print(nfiles)
     
    ; use the first file to retrieve grid variables
     tmask = icef[0]->tmask
     tarea = icef[0]->tarea
     uarea = icef[0]->uarea
   ; in radians, on t-grid
-   rotang = icef[0]->ANGLE
+   rotang = icef[0]->ANGLET
 
 ;************************************************
 ; loop over files
 ;************************************************
 
-   ii = 0
+   ;ii = 0
    ;do ii = 0,nfiles-1
+   do ii = 0,1
     ; create output file name
     outfile = icefilelist(ii)
     ; find the index where the actual filename begins
      indstr = str_index_of_substr(outfile, "/", -1)
     ; insert a sub-directory name
-    outfile = str_insert(outfile,"025/",indstr+1)
+    outfile = str_insert(outfile,res+"/",indstr+1)
     ; insert a string indicating regridding resolution
-    outfile = str_insert(outfile,"025.",-3)
+    outfile = str_insert(outfile,res+".",-3)
+    system("/bin/rm -f "+outfile)
+
          df = addfile(outfile,"c")
     filedimdef(df,"time",-1,True)
     print("regridded files will be written to "+outfile)
 
-    aice_h = icef[ii]->aice_h(ii,:,:)
-      hi_h = icef[ii]->hi_h(ii,:,:)
-    uvel_h = icef[ii]->uvel_h(ii,:,:)
-    vvel_h = icef[ii]->vvel_h(ii,:,:)
+    aice_h = icef[ii]->aice_h(0,:,:)
+      hi_h = icef[ii]->hi_h(0,:,:)
+    uvel_h = icef[ii]->uvel_h(0,:,:)
+    vvel_h = icef[ii]->vvel_h(0,:,:)
     ;printVarSummary(aice_h)
     ; delete the attributes which are no longer valid after regridding
     delete_VarAtts(aice_h,(/"coordinates", "cell_measures"/))
@@ -116,12 +126,13 @@ begin
 
      print("regridding file "+ii)
      ; regrid all variables using weights file
-     df->aice_h = ESMF_regrid_with_weights(aice_h, wgts, True)
-     df->hi_h = ESMF_regrid_with_weights(hi_h, wgts, True)
-     df->uvel_h  = ESMF_regrid_with_weights(   uvel_h, wgts, True)
-     df->vvel_h  = ESMF_regrid_with_weights(   vvel_h, wgts, True)
+     df->aice_h = ESMF_regrid_with_weights(aice_h, wgts, False)
+     df->hi_h = ESMF_regrid_with_weights(hi_h, wgts, False)
+     df->uvel_h  = ESMF_regrid_with_weights(   uvel_h, wgts, False)
+     df->vvel_h  = ESMF_regrid_with_weights(   vvel_h, wgts, False)
+     delete(df)
 
-   ;end do ; nfiles
+   end do ; nfiles
 
 
 exit
