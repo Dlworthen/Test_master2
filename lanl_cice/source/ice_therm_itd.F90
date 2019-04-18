@@ -468,7 +468,14 @@
             indxij(iflag) = ij
          endif
       enddo
+      !print *,'XXXX',iflag,icells
 
+      if(iflag .eq. 0)then
+      allocate(g0(1,ncat))
+      allocate(g1(1,ncat))
+      allocate(hL(1,ncat))
+      allocate(hR(1,ncat))
+     else
       allocate(g0(iflag,ncat))
       allocate(g1(iflag,ncat))
       allocate(hL(iflag,ncat))
@@ -574,6 +581,7 @@
          enddo
       enddo
 
+
       do n = 1, ncat-1
 
 !DIR$ CONCURRENT !Cray
@@ -646,10 +654,14 @@
          enddo                  ! ij
       enddo                     ! boundaries, 1 to ncat-1
 
+      ! iflag =/0
+      end if
+
       deallocate(g0)
       deallocate(g1)
       deallocate(hL)
       deallocate(hR)
+
 
       !-----------------------------------------------------------------
       ! Shift ice between categories as necessary
@@ -666,6 +678,7 @@
          enddo
       enddo
 
+      if(iflag > 0)then
       call shift_ice (nx_block, ny_block,    &
                       indxi,    indxj,       &
                       icells,                &
@@ -676,6 +689,7 @@
                       daice,    dvice,       &
                       l_stop,                &
                       istop,    jstop)
+      end if
 
 
       ! maintain qsno negative definiteness

@@ -70,6 +70,8 @@
          if (status /= nf90_noerr) call abort_ice( &
             'ice: Error reading restart ncfile '//trim(filename))
       
+         ! give default value for use_restart_time = F case
+         time_forc = 0.0
          if (use_restart_time) then
          status = nf90_get_att(ncid, nf90_global, 'istep1', istep0)
          status = nf90_get_att(ncid, nf90_global, 'time', time)
@@ -575,7 +577,6 @@
         status        ! status variable from netCDF routine
 
       status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
-        
       end subroutine define_rest_field
 
 !=======================================================================
