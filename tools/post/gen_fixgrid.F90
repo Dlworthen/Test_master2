@@ -30,19 +30,6 @@ program gen_fixgrid
 !  i-1,j-1         i+1,j-1
 !      
 !
-! Tripole Seam flip: ipL,ipR left,right poles on seam
-!
-! ipL-1     ipL    ipL+1       ipR-1     ipR    ipR+1
-!    x-------x-------x     |||    x-------x-------x 
-!
-! Fold over; ipL must align with ipR
-!  
-!  ipR+1     ipR    ipR-1
-!     x-------x-------x 
-!  ipL-1     ipL    ipL+1
-!     x-------x-------x 
-!
-!
 ! Vertices are defined counter-clockwise from upper right. Ct-grid vertices
 ! are located on the Bu grid; Cu vertices on the Cv grid, Cv vertices on the Cu
 ! grid and Bu vertices on the Ct grid. For example, for the Ct-grid, the vertices
@@ -59,15 +46,12 @@ program gen_fixgrid
 !     iVertCt(4) = (/0, -1, -1, 0/)
 !     jVertCt(4) = (/0, 0, -1, -1/)
 ! 
-! Careful examination of the Cu,Cv and Bu grids lead to similar definitions for the
+! Examination of the Cu,Cv and Bu grids lead to similar definitions for the
 ! i,j offsets required to extract the other grid stragger vertices locations, all of
 ! which can be defined in terms of the iVertCt and jVertCt values
 !  
 ! Special treatment is require at the bottom of the grid, where the verticies of the
-! Ctand Cu grid must be set manually (note, these points are on land.) The top of 
-! the grid also requires special treatment because the required verticies are located
-! across the tripole seam. This is accomplished by creating 1-d arrays which hold
-! the Ct and Cu grid point locations on the matched seam.
+! Ct grid must be set manually (note, these points are on land.) 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   use param
@@ -152,7 +136,7 @@ program gen_fixgrid
   print *,'super grid size ',size(y,1),size(y,2)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! fill grid variables
+! fill grid variables from the super grid
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   do j = 1,nj
@@ -172,10 +156,10 @@ program gen_fixgrid
    enddo
   enddo
 
-  where(lonCt .lt. 0.0)lonCt = lonCt + 360.d0
-  where(lonCu .lt. 0.0)lonCu = lonCu + 360.d0
-  where(lonCv .lt. 0.0)lonCv = lonCv + 360.d0
-  where(lonBu .lt. 0.0)lonBu = lonBu + 360.d0
+  !where(lonCt .lt. 0.0)lonCt = lonCt + 360.d0
+  !where(lonCu .lt. 0.0)lonCu = lonCu + 360.d0
+  !where(lonCv .lt. 0.0)lonCv = lonCv + 360.d0
+  !where(lonBu .lt. 0.0)lonBu = lonBu + 360.d0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! fill grid vertices variables
@@ -229,9 +213,9 @@ program gen_fixgrid
    rc = nf90_put_att(ncid, id,     'units', trim(fixgrid(ii)%unit_name))
    rc = nf90_put_att(ncid, id, 'long_name', trim(fixgrid(ii)%long_name))
    if(trim(fixgrid(ii)%var_name(1:3)) .eq. "lon")then
-    rc = nf90_put_att(ncid, id,  'lon_bounds', trim(fixgrid(ii)%vertices))
+    rc = nf90_put_att(ncid, id,  'bounds', trim(fixgrid(ii)%vertices))
    else
-    rc = nf90_put_att(ncid, id,  'lat_bounds', trim(fixgrid(ii)%vertices))
+    rc = nf90_put_att(ncid, id,  'bounds', trim(fixgrid(ii)%vertices))
    endif
   enddo
   dim3(3) = nv_dim

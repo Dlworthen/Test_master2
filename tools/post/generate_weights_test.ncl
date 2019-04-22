@@ -5,8 +5,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 begin
 
     generate_tripole_SCRIP_files = False
-    generate_dstgrid_SCRIP_files = True
-    generate_tripole_latlon_weights = False
+    generate_dstgrid_SCRIP_files = False
+    generate_tripole_latlon_weights = True
 
 ;---Specify a location to use
         nemsrc     = "./"
@@ -54,12 +54,13 @@ begin
                             cornerlatname+"  "+\
                             cornerlonname)
 
+    print("generating dstfile "+srcfile)
     curvilinear_to_SCRIP(srcfile, gf->$srclatname$, gf->$srclonname$, Opt)
     delete(Opt) 
     delete(gf)
    end if
 
-   ii = 0
+   ii = 1
 
    if(generate_dstgrid_SCRIP_files)then
 ;----------------------------------------------------------------------
@@ -77,10 +78,10 @@ begin
 
      lons = fspan(dstlonbeg(ii),dstlonend(ii),dstxdim(ii))
      lats = fspan(dstlatbeg(ii),dstlatend(ii),dstydim(ii))
-     print(dimsizes(lons))
-     print(dimsizes(lats))
-     ;Opt@LLCorner          = (/ -90.d,   0.d/)
-     ;Opt@URCorner          = (/  90.d, 360.d/)
+     ;print(dimsizes(lons))
+     ;print(dimsizes(lats))
+     Opt@LLCorner          = (/ -90.d,   0.d/)
+     Opt@URCorner          = (/  90.d, 360.d/)
 
      Opt@DstGridLat = lats
      Opt@DstGridLon = lons
@@ -100,12 +101,20 @@ begin
    end if
 
    if(generate_tripole_latlon_weights)then
+    ; test either the tripole SCRIP file created by NCL
+    ; or by the gen_fixgrid
+    testNCL_SCRIP_file = True
 ;----------------------------------------------------------------------
 ;
 ;----------------------------------------------------------------------
 
-    ;srcfile = nemsrc+"Ct_SCRIP.nc"
-    srcfile = nemsrc+"Ct_SCRIP_grid.nc"
+    if(testNCL_SCRIP_file)then
+     fsrc = ".nc"
+    else
+     fsrc = "_grid.nc"
+    end if
+    
+     srcfile = nemsrc+"Ct_SCRIP"+fsrc
     do jj = 0,dimsizes(methods)-1
       Opt                   = True
       Opt@ForceOverwrite    = True
@@ -117,13 +126,13 @@ begin
       Opt@DstESMF           = False
 
       dstfile = nemsrc+"latlon."+dstgrds(ii)+"_SCRIP.nc"
-     ; wgtfile = nemsrc+"tripole.mx025.Ct.to.latlon."+dstgrds(ii)+"."+methods(jj)+".nc"
-      wgtfile = nemsrc+"tripole.mx025.Ct.to.latlon."+dstgrds(ii)+"."+methods(jj)+"_grid.nc"
+      ;this file contains the weights
+      wgtfile = nemsrc+"tripole.mx025.Ct.to.latlon."+dstgrds(ii)+"."+methods(jj)+fsrc
       ESMF_regrid_gen_weights(srcfile,dstfile,wgtfile,Opt)
 
       dstfile = nemsrc+"rect."+dstgrds(ii)+"_SCRIP.nc"
-      ;wgtfile = nemsrc+"tripole.mx025.Ct.to.rect."+dstgrds(ii)+"."+methods(jj)+".nc"
-      wgtfile = nemsrc+"tripole.mx025.Ct.to.rect."+dstgrds(ii)+"."+methods(jj)+"_grid.nc"
+      ;this file contains the weights
+      wgtfile = nemsrc+"tripole.mx025.Ct.to.rect."+dstgrds(ii)+"."+methods(jj)+fsrc
       ESMF_regrid_gen_weights(srcfile,dstfile,wgtfile,Opt)
      end do
 

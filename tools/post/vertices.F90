@@ -56,5 +56,26 @@ subroutine fill_bottom(iVert,jVert,lat,lon,latvert,lonvert)
       lonvert(i,j, 3) = lonvert(i,j,2)
       lonvert(i,j, 4) = lonvert(i,j,1)
    enddo
+#ifdef test
+  ! if define vertices from LL
+  ! fill in grid bottom (j=1) 
+  ! vertices 3,4 are available
+  ! vertices 1,2 must be set manually
+      j = 1
+   do i = 1,ni
+    do n = 3,4
+      ii = i + iVert(n); jj = j + jVert(n)
+      if(ii .eq.    0)ii = ni
+      if(ii .eq. ni+1)ii = 1
+      latvert(i,j,n)   = lat(ii,jj)
+      lonvert(i,j,n)   = lon(ii,jj)
+    enddo
+    ! south of grid bottom
+      latvert(i,j, 1) = -82.d0
+      latvert(i,j, 2) = -82.d0
+      lonvert(i,j, 1) = lonvert(i,j,4)
+      lonvert(i,j, 2) = lonvert(i,j,3)
+   enddo
+#endif
 end subroutine fill_bottom
 

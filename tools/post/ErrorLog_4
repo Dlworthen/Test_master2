@@ -1,0 +1,6 @@
+20190422 150021.900 INFO             PET0 Running with ESMF Version 7.1.0r
+20190422 150022.177 ERROR            PET0 ESMF_Grid.F90:5263 ESMF_GridCreate Wrong argument specified  - - Bad corner array in SCRIP file
+20190422 150022.177 ERROR            PET0 ESMF_Grid.F90:6480 ESMF_GridCreateFrmScrip Wrong argument specified  - Internal subroutine call returned Error
+20190422 150022.184 ERROR            PET0 ESMF_Grid.F90:6141 ESMF_GridCreateFrmNCFile Wrong argument specified  - Internal subroutine call returned Error
+20190422 150022.184 ERROR            PET0 ESMF_RegridWeightGen.F90:1146 ESMF_RegridWeightGenFile Wrong argument specified  - Internal subroutine call returned Error
+20190422 150022.184 INFO             PET0 Finalizing ESMF

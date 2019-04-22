@@ -1,0 +1,10 @@
+20190422 145428.105 INFO             PET0 Running with ESMF Version 7.1.0r
+20190422 145428.109 ERROR            PET0 ESMCI_DistGrid.C:1189 ESMCI::DistGrid::create() Arguments are incompatible  - more extra elements specified than are available
+20190422 145428.109 ERROR            PET0 ESMCI_DistGrid_F.C:120 c_esmc_distgridcreaterd() Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 ERROR            PET0 ESMF_DistGrid.F90:1125 ESMF_DistGridCreateRD() Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 ERROR            PET0 ESMF_Grid.F90:27344 ESMF_GridCreateDistgridReg Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 ERROR            PET0 ESMF_Grid.F90:8340 ESMF_GridCreate1PeriDimR Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 ERROR            PET0 ESMF_Grid.F90:6348 ESMF_GridCreateFrmScrip Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 ERROR            PET0 ESMF_Grid.F90:6141 ESMF_GridCreateFrmNCFile Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 ERROR            PET0 ESMF_RegridWeightGen.F90:1146 ESMF_RegridWeightGenFile Arguments are incompatible  - Internal subroutine call returned Error
+20190422 145428.109 INFO             PET0 Finalizing ESMF
