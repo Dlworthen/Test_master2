@@ -1,0 +1,7 @@
+*.nc
+*.o
+*.i
+*.mod
+gengrid
+PET*.Log
+*.jnl*

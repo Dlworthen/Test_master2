@@ -25,10 +25,4 @@ module grdvar
   integer, dimension(nv) :: iVertBu, iVertCu, iVertCv
   integer, dimension(nv) :: jVertBu, jVertCu, jVertCv
 
-  ! need across seam values of Ct,Cu points to retrieve vertices of Bu and Cv grids
-  real(kind=8), dimension(ni) :: xlonCt, xlatCt
-  real(kind=8), dimension(ni) :: xlonCu, xlatCu
-  ! latitude spacing at bottom of grid
-  real(kind=8), dimension(ni) :: dlatBu, dlatCv
-
 end module grdvar

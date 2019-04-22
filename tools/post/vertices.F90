@@ -25,7 +25,7 @@ subroutine fill_vertices(jbeg,jend,iVert,jVert,lat,lon,latvert,lonvert)
   enddo
 end subroutine fill_vertices
  
-subroutine fill_bottom(iVert,jVert,lat,lon,latvert,lonvert,dlat)
+subroutine fill_bottom(iVert,jVert,lat,lon,latvert,lonvert)
 
   use param
 
@@ -33,7 +33,6 @@ subroutine fill_bottom(iVert,jVert,lat,lon,latvert,lonvert,dlat)
 
                             integer, intent( in) :: iVert(nv), jVert(nv)
   real(kind=8), dimension(ni,nj),    intent( in) ::  lat, lon
-  real(kind=8), dimension(ni),       intent( in) ::  dlat
 
   real(kind=8), dimension(ni,nj,nv), intent(out) :: latvert,lonvert
 
@@ -51,53 +50,11 @@ subroutine fill_bottom(iVert,jVert,lat,lon,latvert,lonvert,dlat)
       latvert(i,j,n)   = lat(ii,jj)
       lonvert(i,j,n)   = lon(ii,jj)
     enddo
-    do n = 3,4
-      ii = i + iVert(n)
-      if(ii .eq.    0)ii = ni
-      if(ii .eq. ni+1)ii = 1
-      latvert(i,j, n) =  dlat(ii)
-    enddo
+    ! south of grid bottom
+      latvert(i,j, 3) = -82.d0  
+      latvert(i,j, 4) = -82.d0  
       lonvert(i,j, 3) = lonvert(i,j,2)
       lonvert(i,j, 4) = lonvert(i,j,1)
    enddo
 end subroutine fill_bottom
 
-subroutine fill_top(iVert,jVert,lat,lon,latvert,lonvert,xlat,xlon)
-
-  use param
-
-  implicit none
-
-                            integer, intent( in) :: iVert(nv), jVert(nv)
-  real(kind=8), dimension(ni,nj),    intent( in) ::  lat,  lon
-  real(kind=8), dimension(ni),       intent( in) :: xlat, xlon
-  
-  real(kind=8), dimension(ni,nj,nv), intent(out) :: latvert,lonvert
-
-  integer :: i,j,n,ii,jj
-
-  ! fill in grid top (j=nj)
-  ! vertices 3,4 are available
-  ! vertices 1,2 must be set manually using 'across seam' values
-      j = nj
-   do i = 1,ni
-    do n = 3,4
-      ii = i + iVert(n); jj = j + jVert(n)
-      if(ii .eq.    0)ii = ni
-      if(ii .eq. ni+1)ii = 1
-      latvert(i,j,n)  = lat(ii,jj)
-      lonvert(i,j,n)  = lon(ii,jj)
-    enddo
-    do n = 1,2
-      ii = i + iVert(n)
-      if(ii .eq.    0)ii = ni
-      if(ii .eq. ni+1)ii = 1
-      latvert(i,j,n)  = xlat(ii)
-      lonvert(i,j,n)  = xlon(ii)
-   enddo
-  enddo
-      !latCv_vert(i,j, 1) = latCv_vert(i,j,4)
-      !latCv_vert(i,j, 2) = latCv_vert(i,j,3)
-      !lonCv_vert(i,j, 1) = lonCv_vert(i,j,4)+240.d0
-      !lonCv_vert(i,j, 2) = lonCv_vert(i,j,3)+240.d0
-end subroutine fill_top

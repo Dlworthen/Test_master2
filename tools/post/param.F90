@@ -11,8 +11,8 @@ module param
   integer, parameter, dimension(nv) :: iVertCt = (/0, -1, -1,  0/)
   integer, parameter, dimension(nv) :: jVertCt = (/0,  0, -1, -1/)
 
-  integer, parameter :: ncoord = 2*4             ! 4sets of lat/lon pairs
-  integer, parameter :: nverts = 2*4             ! 4sets of lat/lon pairs vertices
+  integer, parameter :: ncoord = 2 
+  integer, parameter :: nverts = 2           
   integer, parameter ::  nvars = ncoord + nverts
 
 end module param

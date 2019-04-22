@@ -72,6 +72,7 @@ program gen_fixgrid
 
   use param
   use grdvar
+  use scrip
   use debugprint
   use fixgriddefs
   use netcdf
@@ -79,7 +80,7 @@ program gen_fixgrid
   implicit none
 
   character(len=256) :: dirsrc = '/scratch4/NCEPDEV/nems/noscrub/emc.nemspara/RT/FV3-MOM6-CICE5/benchmark-20180913/MOM6_FIX_025deg/'
-  character(len=256) :: dirout = '/scratch4/NCEPDEV/ocean/save/Denise.Worthen/NEMS_INPUT0.1/ocnicepost/'
+  character(len=256) :: dirout = ' '
   character(len= 10) :: res = 'mx025'
 
   ! super-grid source variables
@@ -175,61 +176,6 @@ program gen_fixgrid
   where(lonCu .lt. 0.0)lonCu = lonCu + 360.d0
   where(lonCv .lt. 0.0)lonCv = lonCv + 360.d0
   where(lonBu .lt. 0.0)lonBu = lonBu + 360.d0
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! some basic error checking
-! find the i-th index of the poles at j= nj
-! the corner points must lie on the pole
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  ipole = -1
-      j = nj
-  do i = 1,ni/2
-   if(latBu(i,j) .eq. 90.0)ipole(1) = i
-  enddo
-  do i = ni/2+1,ni
-   if(latBu(i,j) .eq. 90.0)ipole(2) = i
-  enddo
-  print *,'poles found at ',ipole,latBu(ipole(1),nj),latBu(ipole(2),nj)
-
-  call checkseam
-
-  do i = 1,ni
-    i2 = ipole(2)+(ipole(1)-i)+1
-    xlonCt(i) = lonCt(i2,nj)
-    xlatCt(i) = latCt(i2,nj)
-  enddo
-
-  !do i = 1,10
-  !  i2 = ipole(2)+(ipole(1)-i)
-  !  print *,i,i2,lonCu(i,nj)
-  !enddo
-  !do i = 1430,1440
-  !  i2 = ipole(2)+(ipole(1)-i)
-  !  if(i2 .lt. 1)i2 = ni
-  !  print *,i,i2,lonCu(i,nj)
-  !enddo
- 
-  do i = 1,ni
-    i2 = ipole(2)+(ipole(1)-i)
-    if(i2 .lt. 1)i2 = ni
-   xlonCu(i) = lonCu(i2,nj)
-   xlatCu(i) = latCu(i2,nj)
-   !print *,i,xlonCu(i),lonCu(i2,nj)
-  enddo
- 
-  !xlonCu(ni) = xlonCu(ni) - 360.d0 
-  call checkxlatlon
-  !do i = 1,ni
-  !  i2 = ipole(2)+(ipole(1)-i)
-  !  if(i2 .lt. 1)i2 = ni
-  ! print *,i,xlonCu(i),lonCu(i2,nj)
-  !enddo
-
-  !approx lat at grid bottom 
-  do i = 1,ni
-   dlatBu(i) = latBu(i,1) + 2.0*(latCu(i,1) - latBu(i,1))
-   dlatCv(i) = latCt(i,1) + 2.0*(latCt(i,1) - latCv(i,1))
-  enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! fill grid vertices variables
@@ -237,34 +183,18 @@ program gen_fixgrid
 
   !Ct and Cu grids align in j 
   call fill_vertices(2,nj  , iVertCt,jVertCt, latBu,lonBu, latCt_vert,lonCt_vert)
-  call           fill_bottom(iVertCt,jVertCt, latBu,lonBu, latCt_vert,lonCt_vert,dlatBu)
+  call           fill_bottom(iVertCt,jVertCt, latBu,lonBu, latCt_vert,lonCt_vert)
 
-  call fill_vertices(2,nj  , iVertCu,jVertCu, latCv,lonCv, latCu_vert,lonCu_vert)
-  call           fill_bottom(iVertCu,jVertCu, latCv,lonCv, latCu_vert,lonCu_vert,dlatCv)
-
-  !Cv and Bu grids align in j
-  call fill_vertices(1,nj-1, iVertCv,jVertCv, latCu,lonCu, latCv_vert,lonCv_vert)
-  call              fill_top(iVertCv,jVertCv, latCu,lonCu, latCv_vert,lonCv_vert, xlatCu, xlonCu)
-
-  call fill_vertices(1,nj-1, iVertBu,jVertBu, latCt,lonCt, latBu_vert,lonBu_vert)
-  call              fill_top(iVertBu,jVertBu, latCt,lonCt, latBu_vert,lonBu_vert, xlatCt, xlonCt)
- 
-  !   i = 1
-  !do j = 1,nj
-  !  if(lont_vert(i,j,1) .lt. 0.0)lont_vert(i,j,1) = lont_vert(i,j,1)+240.d0
-  !  if(lont_vert(i,j,4) .lt. 0.0)lont_vert(i,j,4) = lont_vert(i,j,4)+240.d0
-  !enddo
 
   call checkpoint
 
   if(minval(latCt_vert) .lt. -1.e3)stop
   if(minval(lonCt_vert) .lt. -1.e3)stop
-  if(minval(latCu_vert) .lt. -1.e3)stop
-  if(minval(lonCu_vert) .lt. -1.e3)stop
-  if(minval(latCv_vert) .lt. -1.e3)stop
-  if(minval(lonCv_vert) .lt. -1.e3)stop
-  if(minval(latBu_vert) .lt. -1.e3)stop
-  if(minval(lonBu_vert) .lt. -1.e3)stop
+
+  ! give it a different name than NCL generated version
+  fname_out = trim(dirout)//'Ct_SCRIP_grid.nc'
+  call write_scrip(trim(fname_out),'Ct',latCt,lonCt,latCt_vert,lonCt_vert, wet)
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! write out grid file
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -316,57 +246,21 @@ program gen_fixgrid
    rc = nf90_put_att(ncid, nf90_global, 'history', trim(history))
    rc = nf90_enddef(ncid)
 
-  rc = nf90_inq_varid(ncid,   'wet',      id)
-  rc = nf90_put_var(ncid,        id,     wet)
+   rc = nf90_inq_varid(ncid,   'wet',      id)
+   rc = nf90_put_var(ncid,        id,     wet)
 
-  rc = nf90_inq_varid(ncid,  'lonCt',     id)
-  rc = nf90_put_var(ncid,        id,   lonCt)
+   rc = nf90_inq_varid(ncid,  'lonCt',     id)
+   rc = nf90_put_var(ncid,        id,   lonCt)
 
-  rc = nf90_inq_varid(ncid,  'latCt',     id)
-  rc = nf90_put_var(ncid,        id,   latCt)
+   rc = nf90_inq_varid(ncid,  'latCt',     id)
+   rc = nf90_put_var(ncid,        id,   latCt)
 
-  rc = nf90_inq_varid(ncid, 'lonCv',      id)
-  rc = nf90_put_var(ncid,        id,   lonCv)
+   ! vertices
+   rc = nf90_inq_varid(ncid,  'lonCt_vert',     id)
+   rc = nf90_put_var(ncid,         id,  lonCt_vert)
 
-  rc = nf90_inq_varid(ncid, 'latCv',      id)
-  rc = nf90_put_var(ncid,        id,   latCv)
-  
-  rc = nf90_inq_varid(ncid, 'lonCu',      id)
-  rc = nf90_put_var(ncid,        id,   lonCu)
+   rc = nf90_inq_varid(ncid,  'latCt_vert',     id)
+   rc = nf90_put_var(ncid,         id,  latCt_vert)
 
-  rc = nf90_inq_varid(ncid, 'latCu',      id)
-  rc = nf90_put_var(ncid,        id,   latCu)
-
-  rc = nf90_inq_varid(ncid, 'lonBu',      id)
-  rc = nf90_put_var(ncid,        id,   lonBu)
-
-  rc = nf90_inq_varid(ncid, 'latBu',      id)
-  rc = nf90_put_var(ncid,        id,   latBu)
-
-  ! vertices
-  rc = nf90_inq_varid(ncid,  'lonCt_vert',     id)
-  rc = nf90_put_var(ncid,         id,  lonCt_vert)
-
-  rc = nf90_inq_varid(ncid,  'latCt_vert',     id)
-  rc = nf90_put_var(ncid,         id,  latCt_vert)
-
-  rc = nf90_inq_varid(ncid, 'lonCv_vert',      id)
-  rc = nf90_put_var(ncid,        id,   lonCv_vert)
-
-  rc = nf90_inq_varid(ncid, 'latCv_vert',      id)
-  rc = nf90_put_var(ncid,        id,   latCv_vert)
-
-  rc = nf90_inq_varid(ncid, 'lonCu_vert',      id)
-  rc = nf90_put_var(ncid,        id,   lonCu_vert)
-
-  rc = nf90_inq_varid(ncid, 'latCu_vert',      id)
-  rc = nf90_put_var(ncid,        id,   latCu_vert)
-
-  rc = nf90_inq_varid(ncid, 'lonBu_vert',      id)
-  rc = nf90_put_var(ncid,        id,   lonBu_vert)
-
-  rc = nf90_inq_varid(ncid, 'latBu_vert',      id)
-  rc = nf90_put_var(ncid,        id,   latBu_vert)
-
-  rc = nf90_close(ncid)
+   rc = nf90_close(ncid)
 end program gen_fixgrid
