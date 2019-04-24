@@ -22,7 +22,7 @@
 ; the script associates the thickness categories between SIS2 and CICE5 1:1
 ; ignoring the differences in category thickness definitions
 ;
-; this code is a batch job version of the converstion which will
+; this code is a batch job version of the conversion which will
 ; list all files and loop over each
 ;************************************************
 begin
@@ -72,7 +72,7 @@ print(dates)
 ; a SIS2 restartfile
 ;************************************************
 
-nd = 10-1
+nd = 11-1
 ;do  nd = 0,ndates-1
 
  cdate = dates(nd) 
@@ -101,6 +101,7 @@ nd = 10-1
   nilyr1 = 4
   nilyr2 = 7
   nsnwlyr = 1
+     puny = 1.0e-11
 
   print("SIS2 input file with ncat = "+ncat+" and nlayers = "+nilyr1)
   print("CICE5 output file with ncat = "+ncat+" and nlayers = "+nilyr2)
@@ -213,18 +214,18 @@ end do
   vsnon = aicen*vsnon/rhos
 
   ; a reasonable salinity profile
-  salinz = new((/nilyr2/),double)
-  do l = 0,nilyr2-1
-          zn = (int2dble(l+1)-0.5d0)/int2dble(nilyr2)
-   salinz(l) = (saltmax/2.d0)*(1.d0-cos(pi*zn^(nsal/(msal+zn))))
-  end do
-  Tmltz = salinz / (-18.48 + (0.01848*salinz))
+  ;salinz = new((/nilyr2/),double)
+  ;do l = 0,nilyr2-1
+  ;        zn = (int2dble(l+1)-0.5d0)/int2dble(nilyr2)
+  ; salinz(l) = (saltmax/2.d0)*(1.d0-cos(pi*zn^(nsal/(msal+zn))))
+  ;end do
+  ;Tmltz = salinz / (-18.48 + (0.01848*salinz))
   ;print(Tmltz)
 
   ; sis2 is run with constant ice salinity, so substitue profile salinz
-  do l = 0,nilyr2-1
-    sice(l,:,:,:) = salinz(l)
-  end do
+  ;do l = 0,nilyr2-1
+  ;  sice(l,:,:,:) = salinz(l)
+  ;end do
 
 ;************************************************
 ; SIS2 restart has missing values but no attribute for it
@@ -463,6 +464,9 @@ end if
   delete(qice)
   delete(sice)
   delete(icec)
+  delete(imask)
+  delete(icmask)
+  delete(itmask)
  end if ; file is present
 ;end do ; ndates
 ;end if
