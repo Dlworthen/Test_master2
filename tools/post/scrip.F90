@@ -70,6 +70,9 @@ module scrip
      rc = nf90_put_att(ncid, datid, 'units', 'degrees')
      rc = nf90_enddef(ncid)
 
+     rc = nf90_inq_varid(ncid,  'grid_dims', datid)
+     rc = nf90_put_var(ncid,          datid,   (/1440,1080/))
+
     if(stagger .eq. 'Ct')then
        ij = 0
      do j = 1,nj

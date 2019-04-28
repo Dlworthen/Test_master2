@@ -75,7 +75,7 @@ program gen_fixgrid
   character(len=  8) :: cdate
 
   integer :: rc,ncid
-  integer :: id, dim2(2), dim3(3)
+  integer :: id, dim1(1), dim2(2), dim3(3)
   integer :: ni_dim,nj_dim,nv_dim
   integer :: i,j,n,ii,jj,i2,j2
 
